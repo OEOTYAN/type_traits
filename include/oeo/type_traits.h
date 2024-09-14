@@ -2,6 +2,7 @@
 
 #include <concepts>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 
@@ -311,5 +312,80 @@ struct is_constructible_to_string : std::bool_constant<is_constructible_to_strin
 
 template <class T>
 concept constructible_to_string = is_constructible_to_string_v<T>;
+
+
+template <auto V>
+constexpr std::string_view name_of_impl() noexcept {
+#if defined(_MSC_VER)
+    constexpr std::string_view n{__FUNCSIG__};
+    constexpr std::string_view k{"name_of_impl<"};
+    constexpr std::string_view l{">(void) noexcept"};
+#else
+    constexpr std::string_view n{__PRETTY_FUNCTION__};
+    constexpr std::string_view k{"[V = "};
+    constexpr std::string_view l{"]"};
+#endif
+    constexpr auto p = n.find(k) + k.size();
+
+    return n.substr(p, n.size() - p - l.size());
+}
+template <class T>
+consteval std::string_view name_of_impl() noexcept {
+#if defined(_MSC_VER)
+    constexpr std::string_view n{__FUNCSIG__};
+    constexpr std::string_view k{"name_of_impl<"};
+    constexpr std::string_view l{">(void) noexcept"};
+#else
+    constexpr std::string_view n{__PRETTY_FUNCTION__};
+    constexpr std::string_view k{"[T = "};
+    constexpr std::string_view l{"]"};
+#endif
+    constexpr auto p = n.find(k) + k.size();
+
+    return n.substr(p, n.size() - p - l.size());
+}
+template <class T>
+constexpr std::string_view type_name_v = name_of_impl<T>();
+
+template <auto V>
+constexpr std::string_view nontype_name_v = name_of_impl<V>();
+
+
+template <class T, T V1, T V2, class = std::bool_constant<true>>
+struct is_comparable : std::false_type {};
+
+template <class T, T V1, T V2>
+struct is_comparable<T, V1, V2, std::bool_constant<V1 == V2>> : std::true_type {};
+
+template <class T, T V1, T V2>
+constexpr bool is_comparable_v = !is_comparable<T, V1, V2>::value;
+
+
+template <class T>
+constexpr bool is_struct_v = false;
+
+template <class T, auto f>
+constexpr bool is_virtual_function_pointer_v = false;
+
+#ifdef _MSC_VER
+
+template <require<std::is_class> T>
+constexpr bool is_struct_v<T> = type_name_v<T>.starts_with("struct ");
+
+template <require<std::is_member_function_pointer> T, T f>
+constexpr bool is_virtual_function_pointer_v<T, f> = nontype_name_v<f>.find("::`vcall'{") != std::string_view::npos;
+
+#else
+
+template <require<std::is_member_function_pointer> T, T f>
+constexpr bool is_virtual_function_pointer_v<T, f> = !is_comparable_v<T, f, f>;
+
+#endif
+
+template <class T>
+struct is_struct : std::bool_constant<is_struct_v<T>> {};
+
+template <class T, auto f>
+struct is_virtual_function_pointer : std::bool_constant<is_virtual_function_pointer_v<T, f>> {};
 
 } // namespace oeo
