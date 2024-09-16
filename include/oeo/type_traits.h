@@ -78,11 +78,11 @@ struct function_traits : function_traits<decltype(&F::operator())> {};
         template <class T>                                                                                             \
         using cvref                               = T       CVREF;                                                     \
         static constexpr bool is_noexcept         = NOEXCEPT;                                                          \
-        static constexpr bool is_const            = std::is_const_v<cvref<void>>;                                      \
-        static constexpr bool is_volatile         = std::is_volatile_v<cvref<void>>;                                   \
-        static constexpr bool is_reference        = std::is_reference_v<cvref<void>>;                                  \
-        static constexpr bool is_lvalue_reference = std::is_lvalue_reference_v<cvref<void>>;                           \
-        static constexpr bool is_rvalue_reference = std::is_rvalue_reference_v<cvref<void>>;                           \
+        static constexpr bool is_const            = std::is_const_v<cvref<int>>;                                       \
+        static constexpr bool is_volatile         = std::is_volatile_v<cvref<int>>;                                    \
+        static constexpr bool is_reference        = std::is_reference_v<cvref<int>>;                                   \
+        static constexpr bool is_lvalue_reference = std::is_lvalue_reference_v<cvref<int>>;                            \
+        static constexpr bool is_rvalue_reference = std::is_rvalue_reference_v<cvref<int>>;                            \
     };                                                                                                                 \
     template <class Ret, class Cls, class... Args>                                                                     \
     struct function_traits<Ret (Cls::*)(Args...) CVREF noexcept(NOEXCEPT)>                                             \
@@ -316,7 +316,7 @@ concept constructible_to_string = is_constructible_to_string_v<T>;
 
 template <auto V>
 constexpr std::string_view name_of_impl() noexcept {
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
     constexpr std::string_view n{__FUNCSIG__};
     constexpr std::string_view k{"name_of_impl<"};
     constexpr std::string_view l{">(void) noexcept"};
@@ -331,7 +331,7 @@ constexpr std::string_view name_of_impl() noexcept {
 }
 template <class T>
 consteval std::string_view name_of_impl() noexcept {
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
     constexpr std::string_view n{__FUNCSIG__};
     constexpr std::string_view k{"name_of_impl<"};
     constexpr std::string_view l{">(void) noexcept"};
@@ -367,7 +367,7 @@ constexpr bool is_struct_v = false;
 template <class T, auto f>
 constexpr bool is_virtual_function_pointer_v = false;
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
 
 template <require<std::is_class> T>
 constexpr bool is_struct_v<T> = type_name_v<T>.starts_with("struct ");
