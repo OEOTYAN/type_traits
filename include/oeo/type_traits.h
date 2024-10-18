@@ -12,8 +12,8 @@ template <class...>
 constexpr bool always_false = false;
 
 
-template <class T, template <class> class Z>
-concept require = Z<T>::value;
+template <class T, template <class...> class Z, class... Ts>
+concept require = Z<T, Ts...>::value;
 
 
 template <size_t N, class T, class... Ts>
@@ -84,6 +84,8 @@ struct function_traits : function_traits<decltype(&F::operator())> {};
         static constexpr bool is_reference        = std::is_reference_v<cvref<int>>;                                   \
         static constexpr bool is_lvalue_reference = std::is_lvalue_reference_v<cvref<int>>;                            \
         static constexpr bool is_rvalue_reference = std::is_rvalue_reference_v<cvref<int>>;                            \
+        template <template <class...> class T>                                                                         \
+        using parameters = T<Args...>;                                                                                 \
     };                                                                                                                 \
     template <class Ret, class Cls, class... Args>                                                                     \
     struct function_traits<Ret (Cls::*)(Args...) CVREF noexcept(NOEXCEPT)>                                             \
