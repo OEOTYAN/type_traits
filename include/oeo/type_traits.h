@@ -162,7 +162,7 @@ void derived_from_specialization_impl(T<Ts...> const&);
 
 template <class T, template <class...> class Z>
 constexpr bool is_derived_from_specialization_of_v =
-    requires(std::remove_cvref_t<T> const& t) { derived_from_specialization_impl<Z>(t); };
+    requires(std::remove_cvref_t<T> const& t) { ::oeo::derived_from_specialization_impl<Z>(t); };
 
 template <class T, template <class...> class Z>
 struct is_derived_from_specialization_of : std::bool_constant<is_derived_from_specialization_of_v<T, Z>> {};
@@ -173,7 +173,9 @@ concept derived_from_specializes = is_derived_from_specialization_of_v<T, Z>;
 
 template <class T>
 constexpr bool is_virtual_cloneable_v =
-    std::is_polymorphic_v<T> && requires(std::remove_cv_t<T> const& t) { static_cast<T*>(t.clone().release()); };
+    std::is_polymorphic_v<T> && (requires(std::remove_cv_t<T> const& t) {
+        static_cast<T*>(t.clone());
+    } || requires(std::remove_cv_t<T> const& t) { static_cast<T*>(t.clone().release()); });
 
 template <class T>
 struct is_virtual_cloneable : std::bool_constant<is_virtual_cloneable_v<T>> {};
@@ -348,10 +350,10 @@ consteval std::string_view name_of_impl() noexcept {
     return n.substr(p, n.size() - p - l.size());
 }
 template <class T>
-constexpr std::string_view type_name_v = name_of_impl<T>();
+constexpr std::string_view type_name_v = ::oeo::name_of_impl<T>();
 
 template <auto V>
-constexpr std::string_view nontype_name_v = name_of_impl<V>();
+constexpr std::string_view nontype_name_v = ::oeo::name_of_impl<V>();
 
 
 template <class T, T V1, T V2, class = std::bool_constant<true>>
