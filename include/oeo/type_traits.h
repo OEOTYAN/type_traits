@@ -327,7 +327,7 @@ constexpr std::string_view name_of_impl() noexcept {
     constexpr std::string_view l{">(void) noexcept"};
 #else
     constexpr std::string_view n{__PRETTY_FUNCTION__};
-    constexpr std::string_view k{"[V = "};
+    constexpr std::string_view k{"V = "};
     constexpr std::string_view l{"]"};
 #endif
     constexpr auto p = n.find(k) + k.size();
@@ -342,7 +342,7 @@ consteval std::string_view name_of_impl() noexcept {
     constexpr std::string_view l{">(void) noexcept"};
 #else
     constexpr std::string_view n{__PRETTY_FUNCTION__};
-    constexpr std::string_view k{"[T = "};
+    constexpr std::string_view k{"T = "};
     constexpr std::string_view l{"]"};
 #endif
     constexpr auto p = n.find(k) + k.size();
